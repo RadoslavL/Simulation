@@ -30,6 +30,7 @@ GLuint jumppressed = 0;
 GLuint jump = 0;
 GLuint kill = 0;
 GLuint firstclick = 1;
+GLuint speedincrease = 0;
 GLuint uniColor;
 GLuint xploc;
 GLuint yploc;
@@ -208,6 +209,10 @@ int main(int argc, char *argv[]){
    "   gl_FragColor = result;\n"
    "}";
    */
+   GLchar InfoLog1[1024];
+   GLchar InfoLog2[1024];
+   GLchar InfoLog3[1024];
+   GLchar InfoLog4[1024];
    pvs[0] = pVertexShaderText;
    pfs[0] = pFragmentShaderText;
    GLint LenghtsVertex[1];
@@ -221,7 +226,6 @@ int main(int argc, char *argv[]){
    GLint successvs;
    glGetShaderiv(ShaderObjv, GL_COMPILE_STATUS, &successvs);
    if(!successvs){
-       GLchar InfoLog1[1024];
        glGetShaderInfoLog(ShaderObjv, sizeof(InfoLog1), NULL, InfoLog1);
        fprintf(stderr, "Error compiling shader type vertex: '%s'\n", InfoLog1);
        return 1;
@@ -229,7 +233,6 @@ int main(int argc, char *argv[]){
    GLint successfs;
    glGetShaderiv(ShaderObjf, GL_COMPILE_STATUS, &successfs);
    if(!successfs){
-       GLchar InfoLog2[1024];
        glGetShaderInfoLog(ShaderObjf, sizeof(InfoLog2), NULL, InfoLog2);
        fprintf(stderr, "Error compiling shader type fragment: '%s'\n", InfoLog2);
        return 1;
@@ -240,7 +243,6 @@ int main(int argc, char *argv[]){
    GLint success;
    glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &success);
    if(!success){
-      GLchar InfoLog3[1024];
       glGetProgramInfoLog(ShaderProgram, sizeof(InfoLog3), NULL, InfoLog3);
       fprintf(stderr, "Error linking shader program: '%s'\n", InfoLog3);
       return 1;
@@ -249,7 +251,6 @@ int main(int argc, char *argv[]){
    GLint successl;
    glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &successl);
    if(!successl){
-      GLchar InfoLog4[1024];
       glGetProgramInfoLog(ShaderProgram, sizeof(InfoLog4), NULL, InfoLog4);
       fprintf(stderr, "Error validating shader program: '%s'\n", InfoLog4);
       return 1;
@@ -272,14 +273,12 @@ int main(int argc, char *argv[]){
    glCompileShader(DepthObjf);
    glGetShaderiv(DepthObjv, GL_COMPILE_STATUS, &successvs);
    if(!successvs){
-       GLchar InfoLog1[1024];
        glGetShaderInfoLog(ShaderObjv, sizeof(InfoLog1), NULL, InfoLog1);
        fprintf(stderr, "Error compiling depth shader type vertex: '%s'\n", InfoLog1);
        return 1;
    }
    glGetShaderiv(DepthObjf, GL_COMPILE_STATUS, &successfs);
    if(!successfs){
-       GLchar InfoLog2[1024];
        glGetShaderInfoLog(ShaderObjf, sizeof(InfoLog2), NULL, InfoLog2);
        fprintf(stderr, "Error compiling depth shader type fragment: '%s'\n", InfoLog2);
        return 1;
@@ -287,6 +286,12 @@ int main(int argc, char *argv[]){
    glAttachShader(DepthProgram, DepthObjv);
    glAttachShader(DepthProgram, DepthObjf);
    glLinkProgram(DepthProgram);
+   glGetProgramiv(DepthProgram, GL_LINK_STATUS, &success);
+   if(!success){
+      glGetProgramInfoLog(ShaderProgram, sizeof(InfoLog3), NULL, InfoLog3);
+      fprintf(stderr, "Error linking shader program: '%s'\n", InfoLog3);
+      return 1;
+   }
    vec3 camerapos = {0.0f, 0.0f, -7.0f};
    vec3 center = {0.0f, 0.0f, 0.0f};
    vec3 target = {0.0f, 0.0f, 0.0f};
@@ -391,18 +396,17 @@ int main(int argc, char *argv[]){
    printf("Setting up VectexAttribPointer successfull\n");
    GLuint FBO;
    glGenFramebuffers(1, &FBO);
-   glBindFramebuffer(GL_FRAMEBUFFER, FBO);
    GLuint depthTexture;
    glGenTextures(1, &depthTexture);
-   glActiveTexture(GL_TEXTURE1);
    glBindTexture(GL_TEXTURE_2D, depthTexture);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1020, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1020, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
    float clampcolor[] = {1.0f, 1.0f, 1.0f, 1.0f};
    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampcolor);
+   glBindFramebuffer(GL_FRAMEBUFFER, FBO);
    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
    glDrawBuffer(GL_NONE);
    glReadBuffer(GL_NONE);
@@ -410,16 +414,16 @@ int main(int argc, char *argv[]){
    mat4 lightproj = GLM_MAT4_IDENTITY_INIT;
    mat4 lightview = GLM_MAT4_IDENTITY_INIT;
    mat4 light = GLM_MAT4_IDENTITY_INIT;
-   glm_ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f, lightproj);
+   glm_ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 75.0f, lightproj);
    glm_vec3_scale(lightpos, 20.0f, scaledlightpos);
    glm_lookat(scaledlightpos, center, yup, lightview);
    glm_mat4_mul(lightproj, lightview, light);
    glUseProgram(DepthProgram);
    glUniformMatrix4fv(glGetUniformLocation(DepthProgram, "light"), 1, GL_FALSE, &light[0][0]);
    glUniformMatrix4fv(glGetUniformLocation(DepthProgram, "model"), 1, GL_FALSE, &model[0][0]);
-   glUniform1i(glGetUniformLocation(DepthProgram, "shadowmap"), 0);
    glUseProgram(ShaderProgram);
    glUniformMatrix4fv(glGetUniformLocation(ShaderProgram, "light"), 1, GL_FALSE, &light[0][0]);
+   glUniform1i(glGetUniformLocation(ShaderProgram, "shadowmap"), 0);
    int texwidth, texheight, texnum;
    stbi_set_flip_vertically_on_load(true);
    unsigned char* bytes = stbi_load("crate.jpg", &texwidth, &texheight, &texnum, 0);
@@ -460,6 +464,15 @@ int main(int argc, char *argv[]){
       //glm_rotate(floormodel, glm_rad(-degreesy * deltatime * 20), (vec3){0, 1, 0});
       //glm_rotate(model, glm_rad(degreesy), (vec3){0, 1, 0});
       //glm_rotate(floormodel, glm_rad(degreesy), (vec3){0, 1, 0});
+      if(speedincrease == 1){
+         speed[0] = 8.0f;
+	 speed[1] = 8.0f;
+	 speed[2] = 8.0f;
+      }else{
+         speed[0] = 2.5f;
+	 speed[1] = 2.5f;
+	 speed[2] = 2.5f;
+      }
       if(checkfront == 1){
          glm_vec3_mul(camspeed, front, output);
          glm_vec3_add(camerapos, output, camerapos);
@@ -511,10 +524,10 @@ int main(int argc, char *argv[]){
       //printf("Yaw: %f, Pitch: %f\n", yaw, pitch);
       //glm_lookat(camerapos, center, yup, view);
       //printf("%d/%d/%d/%d\n", positionattriblocation, colorattriblocation, textureattriblocation, normalattriblocation);
+      glUseProgram(DepthProgram);
       glViewport(0, 0, 1024, 1024);
       glBindFramebuffer(GL_FRAMEBUFFER, FBO);
       glClear(GL_DEPTH_BUFFER_BIT);
-      glUseProgram(DepthProgram);
       glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
       glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
@@ -594,6 +607,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
       jumppressed = 0;
    }else if(key == GLFW_KEY_Q && action == GLFW_PRESS){
       kill = 1;
+   }else if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS){
+      speedincrease = 1;
+   }else if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE){
+      speedincrease = 0;
    }
 }
 

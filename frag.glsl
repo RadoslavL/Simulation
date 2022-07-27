@@ -17,13 +17,11 @@ void main(){
    vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
    float shadow = 0.0;
    vec3 lightcoords = FragLight.xyz / FragLight.w;
-   if(lightcoords.z <= 1.0){
-      lightcoords = (lightcoords + 1.0) / 2.0;
-      float closestdepth = texture2D(shadowmap, lightcoords.xy).r;
-      float currentdepth = lightcoords.z;
-      if(currentdepth > closestdepth){
-         shadow = 1.0;
-      }
+   lightcoords = lightcoords * 0.5 + 0.5;
+   float closestdepth = texture2D(shadowmap, lightcoords.xy).r;
+   float currentdepth = lightcoords.z;
+   if(currentdepth > closestdepth){
+      shadow = 0.0;
    }
    vec4 result = vec4(ambient + diffuse * (1.0 - shadow), 1.0) * vec4(outcolor, 1.0);
    gl_FragColor = result;
