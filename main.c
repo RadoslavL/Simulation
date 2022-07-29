@@ -35,10 +35,6 @@ GLuint uniColor;
 GLuint xploc;
 GLuint yploc;
 GLuint tex0uni;
-vec3 direction;
-vec3 front;
-vec3 camerapos;
-vec3 location;
 void key_callback();
 void mouse_callback();
 
@@ -74,7 +70,7 @@ int main(int argc, char *argv[]){
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
-   GLFWwindow* window = glfwCreateWindow(width, height, "Title", glfwGetPrimaryMonitor(), NULL);
+   GLFWwindow* window = glfwCreateWindow(width, height, "Title", NULL, NULL);
    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
    if(!window){
       printf("Window creation failed!\n");
@@ -136,6 +132,13 @@ int main(int argc, char *argv[]){
      -2.0f, -0.5f,  2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f,  1.0f, 0.0f, //1
       2.0f, -0.5f,  2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f,  1.0f, 0.0f, //2
       2.0f, -0.5f, -2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f,  1.0f, 0.0f //3
+   };
+
+   float quad[] = {
+     -1.0f, -1.0f,  0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f,  0.0f, 0.0f,
+     -1.0f,  1.0f,  0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f,  0.0f, 0.0f,
+      1.0f,  1.0f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f,  0.0f, 0.0f,
+      1.0f, -1.0f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f,  0.0f, 0.0f
    };
 
    unsigned int indices[] = {
@@ -325,6 +328,7 @@ int main(int argc, char *argv[]){
    mat4 view = GLM_MAT4_IDENTITY_INIT;
    mat4 proj = GLM_MAT4_IDENTITY_INIT;
    mat4 floormodel = GLM_MAT4_IDENTITY_INIT;
+   mat4 identity = GLM_MAT4_IDENTITY_INIT;
    glm_lookat(camerapos, center, yup, view);
    glm_perspective(glm_rad(45.0f), (float)width/(float)height, 0.1f, 100.0f, proj);
    glEnable(GL_DEPTH_TEST);
@@ -332,10 +336,14 @@ int main(int argc, char *argv[]){
    glFrontFace(GL_CCW);
    GLint uniColor = glGetUniformLocation(ShaderProgram, "color");
    GLint tex0uni = glGetUniformLocation(ShaderProgram, "tex0");
+   GLint shadowuni = glGetUniformLocation(ShaderProgram, "shadowmap");
    GLint modelloc = glGetUniformLocation(ShaderProgram, "model");
+   GLint depthmodelloc = glGetUniformLocation(DepthProgram, "model");
    GLint viewloc = glGetUniformLocation(ShaderProgram, "view");
    GLint projloc = glGetUniformLocation(ShaderProgram, "proj");
    GLint lightPos = glGetUniformLocation(ShaderProgram, "lightPos");
+   GLint lightloc = glGetUniformLocation(ShaderProgram, "light");
+   GLint depthlightloc = glGetUniformLocation(DepthProgram, "light");
    glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
    glUniform1i(tex0uni, 0);  
    glUniform3f(lightPos, lightpos[0], lightpos[1], lightpos[2]);
@@ -343,10 +351,10 @@ int main(int argc, char *argv[]){
    glUniformMatrix4fv(viewloc, 1, GL_FALSE, &view[0][0]);
    glUniformMatrix4fv(projloc, 1, GL_FALSE, &proj[0][0]);
    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-   GLuint VBO[2];
+   GLuint VBO[3];
    GLuint VAO;
    GLuint EBO[2];
-   glGenBuffers(2, VBO);
+   glGenBuffers(3, VBO);
    glGenVertexArrays(1, &VAO);
    glGenBuffers(2, EBO);
    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
@@ -363,7 +371,7 @@ int main(int argc, char *argv[]){
    printf("Enabling buffer successfull\n");
    GLint positionattriblocation = glGetAttribLocation(ShaderProgram, "Position");
    GLint colorattriblocation = glGetAttribLocation(ShaderProgram, "incolor");
-   //GLint textureattriblocation = glGetAttribLocation(ShaderProgram, "Tex");
+   GLint textureattriblocation = glGetAttribLocation(ShaderProgram, "Tex");
    GLint normalattriblocation = glGetAttribLocation(ShaderProgram, "innormal");
    printf("Texture set successfully\n");
    glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
@@ -394,6 +402,15 @@ int main(int argc, char *argv[]){
    glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
    printf("Forth pointer succeeded\n");
    printf("Setting up VectexAttribPointer successfull\n");
+   glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
+   glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
+   glVertexAttribPointer(colorattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
+   glVertexAttribPointer(textureattriblocation, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
+   glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
    GLuint FBO;
    glGenFramebuffers(1, &FBO);
    GLuint depthTexture;
@@ -419,11 +436,11 @@ int main(int argc, char *argv[]){
    glm_lookat(scaledlightpos, center, yup, lightview);
    glm_mat4_mul(lightproj, lightview, light);
    glUseProgram(DepthProgram);
-   glUniformMatrix4fv(glGetUniformLocation(DepthProgram, "light"), 1, GL_FALSE, &light[0][0]);
-   glUniformMatrix4fv(glGetUniformLocation(DepthProgram, "model"), 1, GL_FALSE, &model[0][0]);
+   glUniformMatrix4fv(depthlightloc, 1, GL_FALSE, &light[0][0]);
+   glUniformMatrix4fv(depthmodelloc, 1, GL_FALSE, &model[0][0]);
    glUseProgram(ShaderProgram);
-   glUniformMatrix4fv(glGetUniformLocation(ShaderProgram, "light"), 1, GL_FALSE, &light[0][0]);
-   glUniform1i(glGetUniformLocation(ShaderProgram, "shadowmap"), 0);
+   glUniformMatrix4fv(lightloc, 1, GL_FALSE, &light[0][0]);
+   glUniform1i(shadowuni, 0); 
    int texwidth, texheight, texnum;
    stbi_set_flip_vertically_on_load(true);
    unsigned char* bytes = stbi_load("crate.jpg", &texwidth, &texheight, &texnum, 0);
@@ -524,8 +541,9 @@ int main(int argc, char *argv[]){
       //printf("Yaw: %f, Pitch: %f\n", yaw, pitch);
       //glm_lookat(camerapos, center, yup, view);
       //printf("%d/%d/%d/%d\n", positionattriblocation, colorattriblocation, textureattriblocation, normalattriblocation);
-      glUseProgram(DepthProgram);
       glViewport(0, 0, 1024, 1024);
+      glUseProgram(DepthProgram);
+      glUniformMatrix4fv(depthmodelloc, 1, GL_FALSE, &model[0][0]);
       glBindFramebuffer(GL_FRAMEBUFFER, FBO);
       glClear(GL_DEPTH_BUFFER_BIT);
       glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
@@ -550,6 +568,7 @@ int main(int argc, char *argv[]){
       glUniformMatrix4fv(viewloc, 1, GL_FALSE, &view[0][0]);
       glUniformMatrix4fv(modelloc, 1, GL_FALSE, &model[0][0]);
       //glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+      /*
       glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
       glActiveTexture(GL_TEXTURE0);
@@ -562,6 +581,14 @@ int main(int argc, char *argv[]){
       glUniformMatrix4fv(modelloc, 1, GL_FALSE, &floormodel[0][0]);
       //glBufferData(GL_ARRAY_BUFFER, sizeof(floor), floor, GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
+      glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
+      glVertexAttribPointer(colorattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
+      //glVertexAttribPointer(textureattriblocation, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
+      glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
+      glDrawElements(GL_TRIANGLES, sizeof(floorindices)/sizeof(unsigned int), GL_UNSIGNED_INT, 0);
+      */
+      glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
       glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
       glVertexAttribPointer(colorattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
