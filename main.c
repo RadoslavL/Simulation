@@ -166,45 +166,6 @@ int main(int argc, char *argv[]){
    GLuint ShaderObjf = glCreateShader(GL_FRAGMENT_SHADER);
    const GLchar* pvs[1];
    const GLchar* pfs[1];
-   /*
-   const char* pVertexShaderText = "#version 110\n"
-   "attribute vec3 Position;\n"
-   "attribute vec3 incolor;\n"
-   "attribute vec2 Tex;\n"
-   "attribute vec3 innormal;\n"
-   "varying vec3 outcolor;\n"
-   "varying vec2 texcoords;\n"
-   "varying vec3 outnormal;\n"
-   "varying vec3 FragPos;\n"
-   "uniform mat4 model;\n"
-   "uniform mat4 view;\n"
-   "uniform mat4 proj;\n"
-   "void main(){\n"
-   "   gl_Position = proj * view * model * vec4(Position, 1.0);\n"
-   "   FragPos = vec3(model * vec4(Position, 1.0));\n"
-   "   outcolor = incolor;\n"
-   "   texcoords = Tex;\n"
-   "   outnormal = (model * vec4(innormal, 0.0)).xyz;\n"
-   "}";
-   const char* pFragmentShaderText = "#version 110\n"
-   "uniform vec3 color;\n"
-   "uniform sampler2D tex0;\n"
-   "uniform vec3 lightPos;\n"
-   "varying vec3 outcolor;\n"
-   "varying vec2 texcoords;\n"
-   "varying vec3 outnormal;\n"
-   "varying vec3 FragPos;\n"
-   "void main(){\n"
-   "   float ambientstrength = 0.1;\n"
-   "   vec3 ambient = ambientstrength * vec3(1.0, 1.0, 1.0);\n"
-   "   vec3 norm = normalize(outnormal);\n"
-   "   vec3 lightDir = normalize(lightPos - FragPos);\n"
-   "   float diff = max(dot(norm, lightDir), 0.0);\n"
-   "   vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);\n"
-   "   vec4 result = vec4(ambient + diffuse, 1.0) * vec4(outcolor, 1.0);\n"
-   "   gl_FragColor = result;\n"
-   "}";
-   */
    GLchar InfoLog1[1024];
    GLchar InfoLog2[1024];
    GLchar InfoLog3[1024];
@@ -269,13 +230,13 @@ int main(int argc, char *argv[]){
    glCompileShader(DepthObjf);
    glGetShaderiv(DepthObjv, GL_COMPILE_STATUS, &successvs);
    if(!successvs){
-       glGetShaderInfoLog(ShaderObjv, sizeof(InfoLog1), NULL, InfoLog1);
+       glGetShaderInfoLog(DepthObjv, sizeof(InfoLog1), NULL, InfoLog1);
        fprintf(stderr, "Error compiling depth shader type vertex: '%s'\n", InfoLog1);
        return 1;
    }
    glGetShaderiv(DepthObjf, GL_COMPILE_STATUS, &successfs);
    if(!successfs){
-       glGetShaderInfoLog(ShaderObjf, sizeof(InfoLog2), NULL, InfoLog2);
+       glGetShaderInfoLog(DepthObjf, sizeof(InfoLog2), NULL, InfoLog2);
        fprintf(stderr, "Error compiling depth shader type fragment: '%s'\n", InfoLog2);
        return 1;
    }
@@ -284,7 +245,7 @@ int main(int argc, char *argv[]){
    glLinkProgram(DepthProgram);
    glGetProgramiv(DepthProgram, GL_LINK_STATUS, &success);
    if(!success){
-      glGetProgramInfoLog(ShaderProgram, sizeof(InfoLog3), NULL, InfoLog3);
+      glGetProgramInfoLog(DepthProgram, sizeof(InfoLog3), NULL, InfoLog3);
       fprintf(stderr, "Error linking shader program: '%s'\n", InfoLog3);
       return 1;
    }
