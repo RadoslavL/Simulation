@@ -9,8 +9,8 @@
 #include<stb/stb_image.h>
 #include<cglm/cglm.h>
 
-const unsigned int width = 1366;
-const unsigned int height = 768;
+const unsigned int width = 1054;
+const unsigned int height = 1057;
 const float sensitivity = 0.1f;
 float degreesx = 1.0f;
 float degreesy = 0.5f;
@@ -18,7 +18,7 @@ float lastx = (float)width/2;
 float lasty = (float)height/2;
 float xoffset;
 float yoffset;
-float yaw = 450.0f;
+float yaw = -90.0f;
 float pitch = 0.0f;
 float jumpacceleration = 3.0f;
 float gravity = -0.1f;
@@ -91,47 +91,47 @@ int main(int argc, char *argv[]){
    glfwSwapInterval(1);
    float Vertices[] = {
     //Front
-     -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  0.0f,  0.0f, -1.0f, //0
-     -0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f, //1
-      0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  0.0f,  0.0f, -1.0f, //2
-      0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  0.0f,  0.0f, -1.0f, //3
+     -0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  0.0f,  0.0f,  1.0f, //0
+     -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f,  0.0f,  1.0f, //1
+      0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  0.0f,  0.0f,  1.0f, //2
+      0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  0.0f,  0.0f,  1.0f, //3
      
     //Back
-      0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  0.0f,  0.0f,  1.0f, //4
-      0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,  0.0f,  0.0f,  1.0f, //5
-     -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  0.0f,  0.0f,  1.0f, //6
-     -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  0.0f,  0.0f,  1.0f, //7
+      0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  0.0f,  0.0f, -1.0f, //4
+      0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f, //5
+     -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  0.0f,  0.0f, -1.0f, //6
+     -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  0.0f,  0.0f, -1.0f, //7
 
     //Right side
-      0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f, //8
-      0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f, //9
-      0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  1.0f,  0.0f,  0.0f, //10
-      0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f, //11
+      0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f, //8
+      0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f, //9
+      0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  1.0f,  0.0f,  0.0f, //10
+      0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f, //11
 
     //Left side
-     -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f,  0.0f,  0.0f, //12
-     -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -1.0f,  0.0f,  0.0f, //13
-     -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, -1.0f,  0.0f,  0.0f, //14
-     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f,  0.0f,  0.0f, //15
+     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f,  0.0f,  0.0f, //12
+     -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -1.0f,  0.0f,  0.0f, //13
+     -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, -1.0f,  0.0f,  0.0f, //14
+     -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f,  0.0f,  0.0f, //15
 
     //Top
-     -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f,  1.0f,  0.0f, //16
-     -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f,  1.0f,  0.0f, //17
-      0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f,  1.0f,  0.0f, //18
-      0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f,  1.0f,  0.0f, //19
+     -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f,  1.0f,  0.0f, //16
+     -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f,  1.0f,  0.0f, //17
+      0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f,  1.0f,  0.0f, //18
+      0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f,  1.0f,  0.0f, //19
 
     //Bottom
-      0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f, -1.0f,  0.0f, //20
-     -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f, -1.0f,  0.0f, //21
-     -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f, -1.0f,  0.0f, //22
-      0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f, -1.0f,  0.0f, //23
+      0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f, -1.0f,  0.0f, //20
+     -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f, -1.0f,  0.0f, //21
+     -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f, -1.0f,  0.0f, //22
+      0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f, -1.0f,  0.0f, //23
    };
 
    float floor[] = {
-     -2.0f, -0.5f, -2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f,  1.0f, 0.0f, //0
-     -2.0f, -0.5f,  2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f,  1.0f, 0.0f, //1
-      2.0f, -0.5f,  2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f,  1.0f, 0.0f, //2
-      2.0f, -0.5f, -2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f,  1.0f, 0.0f //3
+     -2.0f, -0.5f,  2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,  0.0f,  1.0f, 0.0f, //0
+     -2.0f, -0.5f, -2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  0.0f,  1.0f, 0.0f, //1
+      2.0f, -0.5f, -2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f,  1.0f, 0.0f, //2
+      2.0f, -0.5f,  2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  0.0f,  1.0f, 0.0f //3
    };
 
    unsigned int indices[] = {
@@ -249,13 +249,13 @@ int main(int argc, char *argv[]){
       fprintf(stderr, "Error linking shader program: '%s'\n", InfoLog3);
       return 1;
    }
-   vec3 camerapos = {0.0f, 0.0f, -7.0f};
+   vec3 camerapos = {0.0f, 0.0f, 7.0f};
    vec3 center = {0.0f, 0.0f, 0.0f};
    vec3 target = {0.0f, 0.0f, 0.0f};
-   vec3 front = {0.0f, 0.0f, 1.0f};
+   vec3 front = {0.0f, 0.0f, -1.0f};
    vec3 yup = {0.0f, 1.0f, 0.0f};
    vec3 speed = {2.5f, 2.5f, 2.5f};
-   vec3 lightpos = {-1.0f, 1.0f, -7.0f};
+   vec3 lightpos = {1.0f, 1.0f, 7.0f};
    vec3 location;
    vec3 output;
    vec3 output2;
@@ -287,7 +287,7 @@ int main(int argc, char *argv[]){
    glm_perspective(glm_rad(45.0f), (float)width/(float)height, 0.1f, 100.0f, proj);
    glEnable(GL_DEPTH_TEST);
    glEnable(GL_CULL_FACE);
-   glFrontFace(GL_CCW);
+   glFrontFace(GL_CW);
    GLint uniColor = glGetUniformLocation(ShaderProgram, "color");
    GLint tex0uni = glGetUniformLocation(ShaderProgram, "tex0");
    GLint shadowuni = glGetUniformLocation(ShaderProgram, "shadowmap");
@@ -378,8 +378,8 @@ int main(int argc, char *argv[]){
    mat4 lightview = GLM_MAT4_IDENTITY_INIT;
    mat4 light = GLM_MAT4_IDENTITY_INIT;
    glm_ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 75.0f, lightproj);
-   glm_vec3_scale(lightpos, 2.0f, scaledlightpos);
-   glm_lookat(scaledlightpos, center, yup, lightview);
+   //glm_vec3_scale(lightpos, 2.0f, scaledlightpos);
+   glm_lookat(lightpos, center, yup, lightview);
    glm_mat4_mul(lightproj, lightview, light);
    glUseProgram(DepthProgram);
    glUniformMatrix4fv(depthlightloc, 1, GL_FALSE, &light[0][0]);
