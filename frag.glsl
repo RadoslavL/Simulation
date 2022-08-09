@@ -2,7 +2,7 @@
 uniform vec3 color;
 uniform sampler2D tex0;
 uniform sampler2D shadowmap;
-uniform vec3 lightPos;
+uniform vec3 lightDir;
 varying vec3 outcolor;
 varying vec2 texcoords;
 varying vec3 outnormal;
@@ -12,8 +12,9 @@ void main(){
    float ambientstrength = 0.1;
    vec3 ambient = ambientstrength * vec3(1.0, 1.0, 1.0);
    vec3 norm = normalize(outnormal);
-   vec3 lightDir = normalize(lightPos - FragPos);
-   float diff = max(dot(norm, lightDir), 0.0);
+   //vec3 lightDir = normalize(lightPos - FragPos);
+   vec3 normlightdir = normalize(lightDir);
+   float diff = max(dot(norm, normlightdir), 0.0);
    vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
    float shadow = 0.0;
    vec3 lightcoords = FragLight.xyz / FragLight.w;

@@ -255,7 +255,7 @@ int main(int argc, char *argv[]){
    vec3 front = {0.0f, 0.0f, -1.0f};
    vec3 yup = {0.0f, 1.0f, 0.0f};
    vec3 speed = {2.5f, 2.5f, 2.5f};
-   vec3 lightdir = {-4.0f, 7.0f, 7.0f};
+   vec3 lightpos = {4.0f, 7.0f, 7.0f};
    vec3 location;
    vec3 output;
    vec3 output2;
@@ -296,12 +296,12 @@ int main(int argc, char *argv[]){
    GLint depthmodelloc = glGetUniformLocation(DepthProgram, "model");
    GLint viewloc = glGetUniformLocation(ShaderProgram, "view");
    GLint projloc = glGetUniformLocation(ShaderProgram, "proj");
-   GLint lightDir = glGetUniformLocation(ShaderProgram, "lightDir");
+   GLint lightPos = glGetUniformLocation(ShaderProgram, "lightPos");
    GLint lightloc = glGetUniformLocation(ShaderProgram, "light");
    GLint depthlightloc = glGetUniformLocation(DepthProgram, "light");
    glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
    glUniform1i(tex0uni, 0);  
-   glUniform3f(lightDir, lightdir[0], lightdir[1], lightdir[2]);
+   glUniform3f(lightPos, lightpos[0], lightpos[1], lightpos[2]);
    glUniformMatrix4fv(modelloc, 1, GL_FALSE, &model[0][0]);
    glUniformMatrix4fv(viewloc, 1, GL_FALSE, &view[0][0]);
    glUniformMatrix4fv(projloc, 1, GL_FALSE, &proj[0][0]);
@@ -380,7 +380,7 @@ int main(int argc, char *argv[]){
    mat4 light = GLM_MAT4_IDENTITY_INIT;
    glm_ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 75.0f, lightproj);
    //glm_vec3_scale(lightpos, 2.0f, scaledlightpos);
-   glm_lookat(lightdir, center, yup, lightview);
+   glm_lookat(lightpos, center, yup, lightview);
    glm_mat4_mul(lightproj, lightview, light);
    glUseProgram(DepthProgram);
    glUniformMatrix4fv(depthlightloc, 1, GL_FALSE, &light[0][0]);
