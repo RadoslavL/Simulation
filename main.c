@@ -43,10 +43,10 @@ int main(int argc, char *argv[]){
    FILE* fragmentshader = fopen("frag.glsl", "r");
    FILE* depthvertex = fopen("depthvert.glsl", "r");
    FILE* depthfragment = fopen("depthfrag.glsl", "r");
-   char pVertexShaderText[1000] = {'\0'};
-   char pFragmentShaderText[1000] = {'\0'};
-   char pDepthVertexShaderText[1000] = {'\0'};
-   char pDepthFragmentShaderText[1000] = {'\0'};
+   char pVertexShaderText[5000] = {'\0'};
+   char pFragmentShaderText[5000] = {'\0'};
+   char pDepthVertexShaderText[5000] = {'\0'};
+   char pDepthFragmentShaderText[5000] = {'\0'};
    char buf[100];
    while(fgets(buf, 100, vertexshader) != NULL){
       strcat(pVertexShaderText, buf);
@@ -255,7 +255,7 @@ int main(int argc, char *argv[]){
    vec3 front = {0.0f, 0.0f, -1.0f};
    vec3 yup = {0.0f, 1.0f, 0.0f};
    vec3 speed = {2.5f, 2.5f, 2.5f};
-   vec3 lightdir = {-4.0f, 7.0f, 7.0f};
+   vec3 lightdir = {4.0f, -7.0f, -7.0f};
    vec3 location;
    vec3 output;
    vec3 output2;
@@ -264,6 +264,7 @@ int main(int argc, char *argv[]){
    vec3 direction;
    vec3 directionfront;
    vec3 scaledlightpos;
+   vec3 invlightdir;
    float deltatime = 0.0f;
    float currentframe = glfwGetTime();
    float lastframe = currentframe;
@@ -363,7 +364,7 @@ int main(int argc, char *argv[]){
    GLuint depthTexture;
    glGenTextures(1, &depthTexture);
    glBindTexture(GL_TEXTURE_2D, depthTexture);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1020, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -380,7 +381,8 @@ int main(int argc, char *argv[]){
    mat4 light = GLM_MAT4_IDENTITY_INIT;
    glm_ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 75.0f, lightproj);
    //glm_vec3_scale(lightpos, 2.0f, scaledlightpos);
-   glm_lookat(lightdir, center, yup, lightview);
+   glm_vec3_negate_to(lightdir, invlightdir);
+   glm_lookat(invlightdir, center, yup, lightview);
    glm_mat4_mul(lightproj, lightview, light);
    glUseProgram(DepthProgram);
    glUniformMatrix4fv(depthlightloc, 1, GL_FALSE, &light[0][0]);
