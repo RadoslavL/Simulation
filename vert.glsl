@@ -14,7 +14,7 @@ uniform mat4 proj;
 uniform mat4 light;
 void main(){
    gl_Position = proj * view * model * vec4(Position, 1.0);
-   FragPos = vec3(model * vec4(Position, 1.0));
+   FragPos = (model * vec4(Position, 1.0)).xyz;
    outcolor = incolor;
    texcoords = Tex;
    outnormal = (model * vec4(innormal, 0.0)).xyz;
