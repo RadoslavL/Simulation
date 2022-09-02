@@ -35,6 +35,12 @@ GLuint speedincrease = 0;
 GLuint slow = 0;
 GLuint zoom = 0;
 GLuint zoomedin = 0;
+GLuint texturechange = 0;
+GLuint texturestate = 1;
+GLuint shadowchange = 0;
+GLuint shadowstate = 1;
+GLuint lightingchange = 0;
+GLuint lightingstate = 1;
 GLuint uniColor;
 GLuint xploc;
 GLuint yploc;
@@ -77,28 +83,40 @@ int main(int argc, char *argv[]){
    unsigned int verticessize = 0;
    unsigned int texturecoordsize = 0;
    unsigned int normalssize = 0;
+   unsigned int tangentssize = 0;
+   unsigned int bitangentssize = 0;
+   unsigned int colorssize = 0;
    float *vertex = malloc(sizeof(float) * 1000000);
    float *texturecoords = malloc(sizeof(float) * 1000000);
    float *normals = malloc(sizeof(float) * 1000000);
+   float *tangents = malloc(sizeof(float) * 1000000);
+   float *bitangents = malloc(sizeof(float) * 1000000);
+   float *colors = malloc(sizeof(float) * 1000000);
    unsigned int sunverticessize = 0;
    unsigned int suntexturecoordsize = 0;
    unsigned int sunnormalssize = 0;
    float *sunvertex = malloc(sizeof(float) * 100000);
    float *suntexturecoords = malloc(sizeof(float) * 100000);
    float *sunnormals = malloc(sizeof(float) * 100000);
-   if(load_obj("gun.obj", vertex, texturecoords, normals, &verticessize, &texturecoordsize, &normalssize) != 0){
+   if(load_obj("gun.obj", vertex, texturecoords, normals, tangents, bitangents, &verticessize, &texturecoordsize, &normalssize, &tangentssize, &bitangentssize) != 0){
       printf("Something went wrong!\n");
       return 1;
    }else{
       printf("Model loaded successfully from file!\n");
    }
-   if(load_obj("sphere.obj", sunvertex, suntexturecoords, sunnormals, &sunverticessize, &suntexturecoordsize, &sunnormalssize) != 0){
+   if(load_obj("sphere.obj", sunvertex, suntexturecoords, sunnormals, NULL, NULL, &sunverticessize, &suntexturecoordsize, &sunnormalssize, NULL, NULL) != 0){
       printf("Something went wrong!\n");
       return 1;
    }else{
       printf("Model loaded successfully from file!\n");
    }
    int i;
+   for(i = 0; i < verticessize / sizeof(float) / 3; i++){
+      colors[i * 3] = 1.0f;
+      colors[i * 3 + 1] = 1.0f;
+      colors[i * 3 + 2] = 1.0f;
+      colorssize += sizeof(colors[i * 3]) * 3;
+   }
    for(i = 0; i < argc; i++){
       if(strcmp(argv[i], "hello") == 0){
          printf("Hi!\n");
@@ -110,11 +128,11 @@ int main(int argc, char *argv[]){
    }else{
       printf("Successfully initialized glfw!\n");
    }
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
    glfwWindowHint(GLFW_SAMPLES, 8);
-   //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-   //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
    GLFWwindow* window = glfwCreateWindow(width, height, "Title", NULL, NULL);
    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
    if(!window){
@@ -422,13 +440,22 @@ int main(int argc, char *argv[]){
    GLint lightmodelloc = glGetUniformLocation(LightProgram, "model");
    GLint lightviewloc = glGetUniformLocation(LightProgram, "view");
    GLint lightprojloc = glGetUniformLocation(LightProgram, "proj");
-   GLint lightDir = glGetUniformLocation(ShaderProgram, "lightDir");
+   GLint lightDir = glGetUniformLocation(ShaderProgram, "inlightdir");
    GLint lightloc = glGetUniformLocation(ShaderProgram, "light");
    GLint depthlightloc = glGetUniformLocation(DepthProgram, "light");
    GLint textureorcolor = glGetUniformLocation(ShaderProgram, "textureorcolor");
+   GLint shadowloc = glGetUniformLocation(ShaderProgram, "shadows");
+   GLint lightingloc = glGetUniformLocation(ShaderProgram, "lighting");
+   GLint normalmaploc = glGetUniformLocation(ShaderProgram, "normalmap");
+   GLint normalmapuni = glGetUniformLocation(ShaderProgram, "normalmap0");
    glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
    glUniform1i(tex0uni, 1);  
+   glUniform1i(normalmapuni, 2);
    glUniform3f(lightDir, lightdir[0], lightdir[1], lightdir[2]);
+   glUniform1f(textureorcolor, 1.0f);
+   glUniform1f(shadowloc, 1.0f);
+   glUniform1f(lightingloc, 1.0f);
+   glUniform1f(normalmaploc, 0.0f);
    glUniformMatrix4fv(modelloc, 1, GL_FALSE, &model[0][0]);
    glUniformMatrix4fv(viewloc, 1, GL_FALSE, &view[0][0]);
    glUniformMatrix4fv(projloc, 1, GL_FALSE, &proj[0][0]);
@@ -439,10 +466,16 @@ int main(int argc, char *argv[]){
    GLuint positionbuffer[2];
    GLuint texturebuffer[2];
    GLuint normalbuffer[2];
+   GLuint tangentbuffer;
+   GLuint bitangentbuffer;
+   GLuint colorbuffer[2];
    glGenBuffers(3, VBO);
    glGenBuffers(2, positionbuffer);
    glGenBuffers(2, texturebuffer);
    glGenBuffers(2, normalbuffer);
+   glGenBuffers(1, &tangentbuffer);
+   glGenBuffers(1, &bitangentbuffer);
+   glGenBuffers(2, colorbuffer);
    glGenVertexArrays(3, VAO);
    glGenBuffers(3, EBO);
    glBindVertexArray(VAO[0]);
@@ -459,21 +492,32 @@ int main(int argc, char *argv[]){
    glBufferData(GL_ARRAY_BUFFER, texturecoordsize, texturecoords, GL_STATIC_DRAW);
    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer[0]);
    glBufferData(GL_ARRAY_BUFFER, normalssize, normals, GL_STATIC_DRAW);
+   glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+   glBufferData(GL_ARRAY_BUFFER, tangentssize, tangents, GL_STATIC_DRAW);
+   glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+   glBufferData(GL_ARRAY_BUFFER, bitangentssize, bitangents, GL_STATIC_DRAW);
+   glBindBuffer(GL_ARRAY_BUFFER, colorbuffer[0]);
+   glBufferData(GL_ARRAY_BUFFER, colorssize, colors, GL_STATIC_DRAW);
    printf("Buffer data set up successfully\n");
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
    glEnableVertexAttribArray(3);
+   glEnableVertexAttribArray(4);
+   glEnableVertexAttribArray(5);
    printf("Enabling buffer successfull\n");
    GLint positionattriblocation = glGetAttribLocation(ShaderProgram, "Position");
    GLint colorattriblocation = glGetAttribLocation(ShaderProgram, "incolor");
    GLint textureattriblocation = glGetAttribLocation(ShaderProgram, "Tex");
    GLint normalattriblocation = glGetAttribLocation(ShaderProgram, "innormal");
+   GLint tangentattriblocation = glGetAttribLocation(ShaderProgram, "tangent");
+   GLint bitangentattriblocation = glGetAttribLocation(ShaderProgram, "bitangent");
    GLint lightpositionattriblocation = glGetAttribLocation(LightProgram, "Position");
    printf("Texture set successfully\n");
    glBindBuffer(GL_ARRAY_BUFFER, positionbuffer[0]);
    glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
    printf("First pointer succeeded\n");
+   glBindBuffer(GL_ARRAY_BUFFER, colorbuffer[0]);
    glVertexAttribPointer(colorattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
    printf("Second pointer succeeded\n");
    glBindBuffer(GL_ARRAY_BUFFER, texturebuffer[0]);
@@ -482,7 +526,13 @@ int main(int argc, char *argv[]){
    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer[0]);
    glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 3 * sizeof(float), (void*)0);
    printf("Forth pointer succeeded\n");
-   printf("Setting up VectexAttribPointer successfull\n");
+   glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+   glVertexAttribPointer(tangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   printf("Fifth pointer succeeded\n");
+   glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+   glVertexAttribPointer(bitangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   printf("Sixth pointer succeeded\n");
+   printf("Setting up VertexAttribPointer successfull\n");
    glBindVertexArray(VAO[1]);
    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
@@ -493,6 +543,8 @@ int main(int argc, char *argv[]){
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
    glEnableVertexAttribArray(3);
+   glEnableVertexAttribArray(4);
+   glEnableVertexAttribArray(5);
    printf("Enabling buffer successfull\n");
    glVertexAttribPointer(positionattriblocation, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
    printf("First pointer succeeded\n");
@@ -502,6 +554,12 @@ int main(int argc, char *argv[]){
    printf("Third pointer succeeded\n");
    glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
    printf("Forth pointer succeeded\n");
+   glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+   glVertexAttribPointer(tangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   printf("Fifth pointer succeeded\n");
+   glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+   glVertexAttribPointer(bitangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   printf("Sixth pointer succeeded\n");
    printf("Setting up VectexAttribPointer successfull\n");
    glBindVertexArray(VAO[2]);
    glBindBuffer(GL_ARRAY_BUFFER, positionbuffer[1]);
@@ -574,7 +632,27 @@ int main(int argc, char *argv[]){
    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texwidth, texheight, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
    glGenerateMipmap(GL_TEXTURE_2D);
+   stbi_image_free(bytes);
    printf("Texture set successfully\n");
+   unsigned char* normalbytes = stbi_load("gun_normal.jpg", &texwidth, &texheight, &texnum, 0);
+   if(normalbytes == NULL){
+      printf("Failed to load the normal texture!\n");
+   }
+   GLuint normaltexture;
+   glGenTextures(1, &normaltexture);
+   glActiveTexture(GL_TEXTURE2);
+   glBindTexture(GL_TEXTURE_2D, normaltexture);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+   float normalflatcolor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+   glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, normalflatcolor);
+   printf("Set parameters successfully\n");
+   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texwidth, texheight, 0, GL_RGB, GL_UNSIGNED_BYTE, normalbytes);
+   glGenerateMipmap(GL_TEXTURE_2D);
+   stbi_image_free(normalbytes);
 
    while(!glfwWindowShouldClose(window)){
       glfwPollEvents();
@@ -668,6 +746,7 @@ int main(int argc, char *argv[]){
       //printf("%d/%d/%d/%d\n", positionattriblocation, colorattriblocation, textureattriblocation, normalattriblocation);
       glViewport(0, 0, 8192, 8192);
       glUseProgram(DepthProgram);
+      glEnable(GL_CULL_FACE);
       glUniformMatrix4fv(depthmodelloc, 1, GL_FALSE, &model[0][0]);
       glBindFramebuffer(GL_FRAMEBUFFER, FBO);
       glClear(GL_DEPTH_BUFFER_BIT);
@@ -685,6 +764,7 @@ int main(int argc, char *argv[]){
       glViewport(0, 0, width, height);
       glCullFace(GL_BACK);
       glUseProgram(ShaderProgram);
+      glDisable(GL_CULL_FACE);
       glUniformMatrix4fv(projloc, 1, GL_FALSE, &proj[0][0]);
       glUniformMatrix4fv(viewloc, 1, GL_FALSE, &view[0][0]);
       glUniformMatrix4fv(modelloc, 1, GL_FALSE, &model[0][0]);
@@ -693,15 +773,40 @@ int main(int argc, char *argv[]){
       glBindTexture(GL_TEXTURE_2D, depthTexture);
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, texture);
-      glDisable(GL_CULL_FACE);
-      glUniform1f(textureorcolor, 1.0f);
+      if(texturechange == 1 && texturestate == 1){
+         glUniform1f(textureorcolor, 0.0f);
+	 texturechange = 0;
+	 texturestate = 0;
+      }else if(texturechange == 1 && texturestate == 0){
+         glUniform1f(textureorcolor, 1.0f);
+	 texturechange = 0;
+	 texturestate = 1;
+      }
+      if(shadowchange == 1 && shadowstate == 1){
+         glUniform1f(shadowloc, 0.0f);
+         shadowchange = 0;
+         shadowstate = 0;
+      }else if(shadowchange == 1 && shadowstate == 0){
+         glUniform1f(shadowloc, 1.0f);
+         shadowchange = 0;
+         shadowstate = 1;
+      }
+      if(lightingchange == 1 && lightingstate == 1){
+         glUniform1f(lightingloc, 0.0f);
+         lightingchange = 0;
+         lightingstate = 0;
+      }else if(lightingchange == 1 && lightingstate == 0){
+         glUniform1f(lightingloc, 1.0f);
+         lightingchange = 0;
+         lightingstate = 1;
+      }
+      //printf("%d, %d\n", texturechange, texturestate);
       glBindVertexArray(VAO[0]);
       //glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(unsigned int), GL_UNSIGNED_INT, 0);
       glDrawArrays(GL_TRIANGLES, 0, verticessize / sizeof(float) / 3);
       glUniformMatrix4fv(modelloc, 1, GL_FALSE, &floormodel[0][0]);
       //glBufferData(GL_ARRAY_BUFFER, sizeof(floor), floor, GL_STATIC_DRAW);
-      glEnable(GL_CULL_FACE);
-      glUniform1f(textureorcolor, 0.0f);
+      //glUniform1f(textureorcolor, 0.0f);
       /*
       glBindVertexArray(VAO[1]);
       glDrawElements(GL_TRIANGLES, sizeof(floorindices)/sizeof(unsigned int), GL_UNSIGNED_INT, 0);
@@ -768,6 +873,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
       zoom = 1;
    }else if(key == GLFW_KEY_C && action == GLFW_RELEASE){
       zoom = 0;
+   }else if(key == GLFW_KEY_T && action == GLFW_PRESS){
+      texturechange = 1;
+   }else if(key == GLFW_KEY_V && action == GLFW_PRESS){
+      shadowchange = 1;
+   }else if(key == GLFW_KEY_L && action == GLFW_PRESS){
+      lightingchange = 1;
    }
 }
 
