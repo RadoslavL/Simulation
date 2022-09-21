@@ -41,6 +41,8 @@ GLuint shadowchange = 0;
 GLuint shadowstate = 1;
 GLuint lightingchange = 0;
 GLuint lightingstate = 1;
+GLuint normalmapchange = 0;
+GLuint normalmapstate = 0;
 GLuint uniColor;
 GLuint xploc;
 GLuint yploc;
@@ -98,7 +100,7 @@ int main(int argc, char *argv[]){
    float *sunvertex = malloc(sizeof(float) * 100000);
    float *suntexturecoords = malloc(sizeof(float) * 100000);
    float *sunnormals = malloc(sizeof(float) * 100000);
-   if(load_obj("gun.obj", vertex, texturecoords, normals, tangents, bitangents, &verticessize, &texturecoordsize, &normalssize, &tangentssize, &bitangentssize) != 0){
+   if(load_obj("plane.obj", vertex, texturecoords, normals, tangents, bitangents, &verticessize, &texturecoordsize, &normalssize, &tangentssize, &bitangentssize) != 0){
       printf("Something went wrong!\n");
       return 1;
    }else{
@@ -128,11 +130,11 @@ int main(int argc, char *argv[]){
    }else{
       printf("Successfully initialized glfw!\n");
    }
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
    glfwWindowHint(GLFW_SAMPLES, 8);
-   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+   //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+   //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
    GLFWwindow* window = glfwCreateWindow(width, height, "Title", NULL, NULL);
    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
    if(!window){
@@ -526,8 +528,8 @@ int main(int argc, char *argv[]){
    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer[0]);
    glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 3 * sizeof(float), (void*)0);
    printf("Forth pointer succeeded\n");
-   glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-   glVertexAttribPointer(tangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   //glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+   //glVertexAttribPointer(tangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
    printf("Fifth pointer succeeded\n");
    glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
    glVertexAttribPointer(bitangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -554,8 +556,8 @@ int main(int argc, char *argv[]){
    printf("Third pointer succeeded\n");
    glVertexAttribPointer(normalattriblocation, 3, GL_FLOAT, GL_TRUE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
    printf("Forth pointer succeeded\n");
-   glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-   glVertexAttribPointer(tangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   //glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+   //glVertexAttribPointer(tangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
    printf("Fifth pointer succeeded\n");
    glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
    glVertexAttribPointer(bitangentattriblocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -613,7 +615,7 @@ int main(int argc, char *argv[]){
 
    int texwidth, texheight, texnum;
    stbi_set_flip_vertically_on_load(true);
-   unsigned char* bytes = stbi_load("gun.jpg", &texwidth, &texheight, &texnum, 0);
+   unsigned char* bytes = stbi_load("brickwall2.jpg", &texwidth, &texheight, &texnum, 0);
    if(bytes == NULL){
       printf("Failed to load the texture!\n");
       //return 1;
@@ -634,7 +636,8 @@ int main(int argc, char *argv[]){
    glGenerateMipmap(GL_TEXTURE_2D);
    stbi_image_free(bytes);
    printf("Texture set successfully\n");
-   unsigned char* normalbytes = stbi_load("gun_normal.jpg", &texwidth, &texheight, &texnum, 0);
+   stbi_set_flip_vertically_on_load(true);
+   unsigned char* normalbytes = stbi_load("brickwall2_normal.jpg", &texwidth, &texheight, &texnum, 0);
    if(normalbytes == NULL){
       printf("Failed to load the normal texture!\n");
    }
@@ -653,6 +656,7 @@ int main(int argc, char *argv[]){
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texwidth, texheight, 0, GL_RGB, GL_UNSIGNED_BYTE, normalbytes);
    glGenerateMipmap(GL_TEXTURE_2D);
    stbi_image_free(normalbytes);
+   printf("Texture set successfully\n");
 
    while(!glfwWindowShouldClose(window)){
       glfwPollEvents();
@@ -729,6 +733,7 @@ int main(int argc, char *argv[]){
       if(kill == 1){
          break;
       }
+      //glm_rotate(model, glm_rad(0.1f), (vec3){0, 1, 0});
       direction[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
       direction[1] = sin(glm_rad(pitch));
       direction[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
@@ -799,6 +804,15 @@ int main(int argc, char *argv[]){
          glUniform1f(lightingloc, 1.0f);
          lightingchange = 0;
          lightingstate = 1;
+      }
+      if(normalmapchange == 1 && normalmapstate == 1){
+         glUniform1f(normalmaploc, 0.0f);
+	 normalmapchange = 0;
+	 normalmapstate = 0;
+      }else if(normalmapchange == 1 && normalmapstate == 0){
+         glUniform1f(normalmaploc, 1.0f);
+	 normalmapchange = 0;
+	 normalmapstate = 1;
       }
       //printf("%d, %d\n", texturechange, texturestate);
       glBindVertexArray(VAO[0]);
@@ -879,6 +893,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
       shadowchange = 1;
    }else if(key == GLFW_KEY_L && action == GLFW_PRESS){
       lightingchange = 1;
+   }else if(key == GLFW_KEY_N && action == GLFW_PRESS){
+      normalmapchange = 1;
    }
 }
 

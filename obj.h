@@ -27,14 +27,14 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
    float texturecoordsind[100000];
    float normalsind[100000];
    */
-   float *verticesout = malloc(sizeof(float) * 1000000);
-   float *texcoordsout = malloc(sizeof(float) * 1000000);
-   float *normalsout = malloc(sizeof(float) * 1000000);
-   float *verticesind = malloc(sizeof(float) * 1000000);
-   float *texturecoordsind = malloc(sizeof(float) * 1000000);
-   float *normalsind = malloc(sizeof(float) * 1000000);
-   float *tangents = malloc(sizeof(float) * 1000000);
-   float *bitangents = malloc(sizeof(float) * 1000000);
+   float *verticesout = malloc(sizeof(float) * 5000000);
+   float *texcoordsout = malloc(sizeof(float) * 5000000);
+   float *normalsout = malloc(sizeof(float) * 5000000);
+   float *verticesind = malloc(sizeof(float) * 5000000);
+   float *texturecoordsind = malloc(sizeof(float) * 5000000);
+   float *normalsind = malloc(sizeof(float) * 5000000);
+   float *tangents = malloc(sizeof(float) * 5000000);
+   float *bitangents = malloc(sizeof(float) * 5000000);
    unsigned int vertexindex[3];
    unsigned int texindex[3];
    unsigned int normalindex[3];
@@ -49,9 +49,9 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
    unsigned int texindices[100000];
    unsigned int normalindices[100000];
    */
-   unsigned int *vertexindices = malloc(sizeof(unsigned int) * 1000000);
-   unsigned int *texindices = malloc(sizeof(unsigned int) * 1000000);
-   unsigned int *normalindices = malloc(sizeof(unsigned int) * 1000000);
+   unsigned int *vertexindices = malloc(sizeof(unsigned int) * 5000000);
+   unsigned int *texindices = malloc(sizeof(unsigned int) * 5000000);
+   unsigned int *normalindices = malloc(sizeof(unsigned int) * 5000000);
    if(verticesout == NULL || texcoordsout == NULL || normalsout == NULL || verticesind == NULL || texturecoordsind == NULL || normalsind == NULL || vertexindices == NULL || texindices == NULL || normalindices == NULL){
       printf("Not enough memory! Allocation failed!\n");
       return 1;
