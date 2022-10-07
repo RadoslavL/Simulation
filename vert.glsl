@@ -33,14 +33,13 @@ void main(){
    //vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));
    vec3 B = normalize(vec3(model * vec4(bitangent, 0.0)));
    vec3 N = normalize(vec3(model * vec4(innormal, 0.0)));
-   vec3 T = normalize(cross(B, N));
-   /*
-   if(tangent == vec3(0.0)){
-      vec3 T = normalize(cross(B, N));
+   //vec3 T = normalize(cross(B, N));
+   vec3 T;
+   if(length(tangent) < 0.001){
+      T = normalize(cross(B, N));
    }else{
-      vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));
+      T = normalize(vec3(model * vec4(tangent, 0.0)));
    }
-   */
    mat3 invTBN = mat3(T, B, N);
    mat3 TBN = mat3(vec3(invTBN[0].x, invTBN[1].x, invTBN[2].x), vec3(invTBN[0].y, invTBN[1].y, invTBN[2].y), vec3(invTBN[0].z, invTBN[1].z, invTBN[2].z));
    lightdir = /*-normalize(inlightdir);*/ normalize(normalmap * TBN * (-inlightdir) + (1.0 - normalmap) * (-inlightdir));

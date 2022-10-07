@@ -29,7 +29,7 @@ void main(){
       lightcoords = lightcoords * 0.5 + 0.5;
       float closestdepth; // = texture2D(shadowmap, lightcoords.xy).r;
       float currentdepth = lightcoords.z;
-      float bias = max(0.00075 * (1.0 - dot(norm, normlightdir)), 0.00001);
+      //float bias = max(0.00075 * (1.0 - dot(norm, normlightdir)), 0.00001);
       //float bias = 0.00025;
       int sampleradius = 2;
       vec2 pixelsize = 1.0 / vec2(8192, 8192);

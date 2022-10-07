@@ -3,7 +3,7 @@
 #include<string.h>
 #include"pointers.h"
 
-int load_obj(const char* filename, float* vertices, float* texcoords, float* normals, float* tangentsout, float* bitangentsout, unsigned int* vertexindexsize, unsigned int* texcoordindexsize, unsigned int* normalindexsize, unsigned int* tangentindexsize, unsigned int* bitangentindexsize /*int* indices, int* textureindices, int* normalsindices, unsigned int* vertexindexsize, unsigned int* texcoordindexsize, unsigned int* normalindexsize*/){
+int load_obj(const char* filename, float** vertices, float** texcoords, float** normals, float** tangentsout, float** bitangentsout, unsigned int* vertexindexsize, unsigned int* texcoordindexsize, unsigned int* normalindexsize, unsigned int* tangentindexsize, unsigned int* bitangentindexsize /*int* indices, int* textureindices, int* normalsindices, unsigned int* vertexindexsize, unsigned int* texcoordindexsize, unsigned int* normalindexsize*/){
    FILE* file = fopen(filename, "r");
    char lineheader[128];
    int res;
@@ -27,14 +27,14 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
    float texturecoordsind[100000];
    float normalsind[100000];
    */
-   float *verticesout = malloc(sizeof(float) * 5000000);
-   float *texcoordsout = malloc(sizeof(float) * 5000000);
-   float *normalsout = malloc(sizeof(float) * 5000000);
-   float *verticesind = malloc(sizeof(float) * 5000000);
-   float *texturecoordsind = malloc(sizeof(float) * 5000000);
-   float *normalsind = malloc(sizeof(float) * 5000000);
-   float *tangents = malloc(sizeof(float) * 5000000);
-   float *bitangents = malloc(sizeof(float) * 5000000);
+   float *verticesout; //= malloc(sizeof(float) * 1000000);
+   float *texcoordsout; //= malloc(sizeof(float) * 1000000);
+   float *normalsout; //= malloc(sizeof(float) * 1000000);
+   float *verticesind; //= malloc(sizeof(float) * 1000000);
+   float *texturecoordsind; //= malloc(sizeof(float) * 1000000);
+   float *normalsind; //= malloc(sizeof(float) * 1000000);
+   float *tangents; //= malloc(sizeof(float) * 1000000);
+   float *bitangents; //= malloc(sizeof(float) * 1000000);
    unsigned int vertexindex[3];
    unsigned int texindex[3];
    unsigned int normalindex[3];
@@ -49,13 +49,15 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
    unsigned int texindices[100000];
    unsigned int normalindices[100000];
    */
-   unsigned int *vertexindices = malloc(sizeof(unsigned int) * 5000000);
-   unsigned int *texindices = malloc(sizeof(unsigned int) * 5000000);
-   unsigned int *normalindices = malloc(sizeof(unsigned int) * 5000000);
+   unsigned int *vertexindices; //= malloc(sizeof(unsigned int) * 1000000);
+   unsigned int *texindices; //= malloc(sizeof(unsigned int) * 1000000);
+   unsigned int *normalindices; //= malloc(sizeof(unsigned int) * 1000000);
+   /*
    if(verticesout == NULL || texcoordsout == NULL || normalsout == NULL || verticesind == NULL || texturecoordsind == NULL || normalsind == NULL || vertexindices == NULL || texindices == NULL || normalindices == NULL){
       printf("Not enough memory! Allocation failed!\n");
       return 1;
    }
+   */
    if(file == NULL){
       printf("Failed to open file!\n");
       return 1;
@@ -67,34 +69,51 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
       }
       if(strcmp(lineheader, "v") == 0){
          fscanf(file, "%f %f %f\n", &vertex[0], &vertex[1], &vertex[2]);
-         verticesout[i] = vertex[0];
-         verticesout[i + 1] = vertex[1];
-         verticesout[i + 2] = vertex[2];
+         //verticesout[i] = vertex[0];
+         //verticesout[i + 1] = vertex[1];
+         //verticesout[i + 2] = vertex[2];
+	 insertarrayfloat(&verticesout, i, vertex[0]);
+	 insertarrayfloat(&verticesout, i + 1, vertex[1]);
+         insertarrayfloat(&verticesout, i + 2, vertex[2]);
          i += 3;
       }else if(strcmp(lineheader, "vt") == 0){
          fscanf(file, "%f %f\n", &texcoord[0], &texcoord[1]);
-         texcoordsout[f] = texcoord[0];
-         texcoordsout[f + 1] = texcoord[1];
+         //texcoordsout[f] = texcoord[0];
+         //texcoordsout[f + 1] = texcoord[1];
+	 insertarrayfloat(&texcoordsout, f, texcoord[0]);
+	 insertarrayfloat(&texcoordsout, f + 1, texcoord[1]);
          f += 2;
       }else if(strcmp(lineheader, "vn") == 0){
          fscanf(file, "%f %f %f\n", &normal[0], &normal[1], &normal[2]);
-         normalsout[d] = normal[0];
-         normalsout[d + 1] = normal[1];
-         normalsout[d + 2] = normal[2];
+         //normalsout[d] = normal[0];
+         //normalsout[d + 1] = normal[1];
+         //normalsout[d + 2] = normal[2];
+	 insertarrayfloat(&normalsout, d, normal[0]);
+	 insertarrayfloat(&normalsout, d + 1, normal[1]);
+	 insertarrayfloat(&normalsout, d + 2, normal[2]);
          d += 3;
       }else if(strcmp(lineheader, "f") == 0){
          fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexindex[0], &texindex[0], &normalindex[0], &vertexindex[1], &texindex[1], &normalindex[1], &vertexindex[2], &texindex[2], &normalindex[2]);
-         vertexindices[g] = vertexindex[0];
-         vertexindices[g + 1] = vertexindex[1];
-         vertexindices[g + 2] = vertexindex[2];
+         //vertexindices[g] = vertexindex[0];
+         //vertexindices[g + 1] = vertexindex[1];
+         //vertexindices[g + 2] = vertexindex[2];
+	 insertarrayint(&vertexindices, g, vertexindex[0]);
+	 insertarrayint(&vertexindices, g + 1, vertexindex[1]);
+	 insertarrayint(&vertexindices, g + 2, vertexindex[2]);
 	 vertexsize += 3;
-         texindices[g] = texindex[0];
-         texindices[g + 1] = texindex[1];
-         texindices[g + 2] = texindex[2];
+         //texindices[g] = texindex[0];
+         //texindices[g + 1] = texindex[1];
+         //texindices[g + 2] = texindex[2];
+	 insertarrayint(&texindices, g, texindex[0]);
+         insertarrayint(&texindices, g + 1, texindex[1]);
+         insertarrayint(&texindices, g + 2, texindex[2]);
 	 texcoordsize += 3;
-         normalindices[g] = normalindex[0];
-         normalindices[g + 1] = normalindex[1];
-         normalindices[g + 2] = normalindex[2];
+         //normalindices[g] = normalindex[0];
+         //normalindices[g + 1] = normalindex[1];
+         //normalindices[g + 2] = normalindex[2];
+	 insertarrayint(&normalindices, g, normalindex[0]);
+         insertarrayint(&normalindices, g + 1, normalindex[1]);
+         insertarrayint(&normalindices, g + 2, normalindex[2]);
 	 normalsize += 3;
          g += 3;
       }
@@ -114,21 +133,30 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
    }
    */
    for(i = 0; i < vertexsize; i++){
-      verticesind[i * 3] = verticesout[(vertexindices[i] - 1) * 3];
-      verticesind[i * 3 + 1] = verticesout[(vertexindices[i] - 1) * 3 + 1];
-      verticesind[i * 3 + 2] = verticesout[(vertexindices[i] - 1) * 3 + 2];
+      //verticesind[i * 3] = verticesout[(vertexindices[i] - 1) * 3];
+      //verticesind[i * 3 + 1] = verticesout[(vertexindices[i] - 1) * 3 + 1];
+      //verticesind[i * 3 + 2] = verticesout[(vertexindices[i] - 1) * 3 + 2];
+      insertarrayfloat(&verticesind, i * 3, verticesout[(vertexindices[i] - 1) * 3]);
+      insertarrayfloat(&verticesind, i * 3 + 1, verticesout[(vertexindices[i] - 1) * 3 + 1]);
+      insertarrayfloat(&verticesind, i * 3 + 2, verticesout[(vertexindices[i] - 1) * 3 + 2]);
       verticessize += sizeof(verticesind[i]) * 3;
    }
    for(i = 0; i < texcoordsize; i++){
-      texturecoordsind[i * 2] = texcoordsout[(texindices[i] - 1) * 2];
-      texturecoordsind[i * 2 + 1] = texcoordsout[(texindices[i] - 1) * 2 + 1];
-      texturecoordsind[i * 2 + 2] = texcoordsout[(texindices[i] - 1) * 2 + 2];
-      texturecoordsize += sizeof(texturecoordsind[i]) * 3;
+      //texturecoordsind[i * 2] = texcoordsout[(texindices[i] - 1) * 2];
+      //texturecoordsind[i * 2 + 1] = texcoordsout[(texindices[i] - 1) * 2 + 1];
+      //texturecoordsind[i * 2 + 2] = texcoordsout[(texindices[i] - 1) * 2 + 2];
+      insertarrayfloat(&texturecoordsind, i * 2, texcoordsout[(texindices[i] - 1) * 2]);
+      insertarrayfloat(&texturecoordsind, i * 2 + 1, texcoordsout[(texindices[i] - 1) * 2 + 1]);
+      insertarrayfloat(&texturecoordsind, i * 2 + 2, texcoordsout[(texindices[i] - 1) * 2 + 2]);
+      texturecoordsize += sizeof(texturecoordsind[i]) * 2;
    }
    for(i = 0; i < normalsize; i++){
-      normalsind[i * 3] = normalsout[(normalindices[i] - 1) * 3];
-      normalsind[i * 3 + 1] = normalsout[(normalindices[i] - 1) * 3 + 1];
-      normalsind[i * 3 + 2] = normalsout[(normalindices[i] - 1) * 3 + 2];
+      //normalsind[i * 3] = normalsout[(normalindices[i] - 1) * 3];
+      //normalsind[i * 3 + 1] = normalsout[(normalindices[i] - 1) * 3 + 1];
+      //normalsind[i * 3 + 2] = normalsout[(normalindices[i] - 1) * 3 + 2];
+      insertarrayfloat(&normalsind, i * 3, normalsout[(normalindices[i] - 1) * 3]);
+      insertarrayfloat(&normalsind, i * 3 + 1, normalsout[(normalindices[i] - 1) * 3 + 1]);
+      insertarrayfloat(&normalsind, i * 3 + 2, normalsout[(normalindices[i] - 1) * 3 + 2]);
       normalssize += sizeof(normalsind[i]) * 3;
    }
    for(i = 0; i < verticessize / sizeof(float) / 9; i++){
@@ -164,33 +192,56 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
       bitangent[0] = r * (deltapos2[0] * deltauv1[0] - deltapos1[0] * deltauv2[0]);
       bitangent[1] = r * (deltapos2[1] * deltauv1[0] - deltapos1[1] * deltauv2[0]);
       bitangent[2] = r * (deltapos2[2] * deltauv1[0] - deltapos1[2] * deltauv2[0]);
-      tangents[i * 3] = tangent[0];
-      tangents[i * 9 + 1] = tangent[1];
-      tangents[i * 9 + 2] = tangent[2];
-      tangents[i * 9 + 3] = tangent[0];
-      tangents[i * 9 + 4] = tangent[1];
-      tangents[i * 9 + 5] = tangent[2];
-      tangents[i * 9 + 6] = tangent[0];
-      tangents[i * 9 + 7] = tangent[1];
-      tangents[i * 9 + 8] = tangent[2];
-      bitangents[i * 9] = bitangent[0];
-      bitangents[i * 9 + 1] = bitangent[1];
-      bitangents[i * 9 + 2] = bitangent[2];
-      bitangents[i * 9 + 3] = bitangent[0];
-      bitangents[i * 9 + 4] = bitangent[1];
-      bitangents[i * 9 + 5] = bitangent[2];
-      bitangents[i * 9 + 6] = bitangent[0];
-      bitangents[i * 9 + 7] = bitangent[1];
-      bitangents[i * 9 + 8] = bitangent[2];
+      //tangents[i * 9] = tangent[0];
+      //tangents[i * 9 + 1] = tangent[1];
+      //tangents[i * 9 + 2] = tangent[2];
+      //tangents[i * 9 + 3] = tangent[0];
+      //tangents[i * 9 + 4] = tangent[1];
+      //tangents[i * 9 + 5] = tangent[2];
+      //tangents[i * 9 + 6] = tangent[0];
+      //tangents[i * 9 + 7] = tangent[1];
+      //tangents[i * 9 + 8] = tangent[2];
+      insertarrayfloat(&tangents, i * 9, tangent[0]);
+      insertarrayfloat(&tangents, i * 9 + 1, tangent[1]);
+      insertarrayfloat(&tangents, i * 9 + 2, tangent[2]);
+      insertarrayfloat(&tangents, i * 9 + 3, tangent[0]);
+      insertarrayfloat(&tangents, i * 9 + 4, tangent[1]);
+      insertarrayfloat(&tangents, i * 9 + 5, tangent[2]);
+      insertarrayfloat(&tangents, i * 9 + 6, tangent[0]);
+      insertarrayfloat(&tangents, i * 9 + 7, tangent[1]);
+      insertarrayfloat(&tangents, i * 9 + 8, tangent[2]);
+      //bitangents[i * 9] = bitangent[0];
+      //bitangents[i * 9 + 1] = bitangent[1];
+      //bitangents[i * 9 + 2] = bitangent[2];
+      //bitangents[i * 9 + 3] = bitangent[0];
+      //bitangents[i * 9 + 4] = bitangent[1];
+      //bitangents[i * 9 + 5] = bitangent[2];
+      //bitangents[i * 9 + 6] = bitangent[0];
+      //bitangents[i * 9 + 7] = bitangent[1];
+      //bitangents[i * 9 + 8] = bitangent[2];
+      insertarrayfloat(&bitangents, i * 9, bitangent[0]);
+      insertarrayfloat(&bitangents, i * 9 + 1, bitangent[1]);
+      insertarrayfloat(&bitangents, i * 9 + 2, bitangent[2]);
+      insertarrayfloat(&bitangents, i * 9 + 3, bitangent[0]);
+      insertarrayfloat(&bitangents, i * 9 + 4, bitangent[1]);
+      insertarrayfloat(&bitangents, i * 9 + 5, bitangent[2]);
+      insertarrayfloat(&bitangents, i * 9 + 6, bitangent[0]);
+      insertarrayfloat(&bitangents, i * 9 + 7, bitangent[1]);
+      insertarrayfloat(&bitangents, i * 9 + 8, bitangent[2]);
       tangentssize += sizeof(tangents[i]) * 9;
       bitangentssize += sizeof(bitangents[i]) * 9;
    }
-   memcpy(vertices, verticesind, verticessize);
-   memcpy(texcoords, texturecoordsind, texturecoordsize);
-   memcpy(normals, normalsind, normalssize);
+   //memcpy(vertices, verticesind, verticessize);
+   //memcpy(texcoords, texturecoordsind, texturecoordsize);
+   //memcpy(normals, normalsind, normalssize);
+   *vertices = verticesind;
+   *texcoords = texturecoordsind;
+   *normals = normalsind;
    if(tangentsout && bitangentsout){
-      memcpy(tangentsout, tangents, tangentssize);
-      memcpy(bitangentsout, bitangents, bitangentssize);
+      //memcpy(tangentsout, tangents, tangentssize);
+      //memcpy(bitangentsout, bitangents, bitangentssize);
+      *tangentsout = tangents;
+      *bitangentsout = tangents;
    }
    /*
    memcpy(indices, vertexindices, sizeof(vertexindices));
@@ -207,10 +258,5 @@ int load_obj(const char* filename, float* vertices, float* texcoords, float* nor
    free(verticesout);
    free(texcoordsout);
    free(normalsout);
-   free(verticesind);
-   free(texturecoordsind);
-   free(normalsind);
-   free(tangents);
-   free(bitangents);
    return 0;
 }

@@ -1,42 +1,47 @@
-#include<stdio.h>
 #include<stdlib.h>
 
-void insertarrayint(int **ptr, int *size, int data){
-   if(*size == 0){
-      printf("Allocating memory for pointer with size: %d\n", *size);
-      *ptr = malloc(sizeof(int));
-      if(*ptr == NULL){
-         printf("Failed to allocate memory!\n");
+int insertarrayint(unsigned int **ptr, int size, int data){
+   int *temp;
+   if(size == 0){
+      temp = malloc(sizeof(unsigned int));
+      if(!temp){
+         printf("Error!\n");
+         return 1;
+      }else{
+         *ptr = temp;
       }
+      **ptr = data;
    }else{
-      printf("Reallocating memory for new pointer with size: %d\n", *size);
-      *ptr = realloc(*ptr, (*size + 1) * sizeof(int));
-      if(*ptr == NULL){
-         printf("Failed to allocate memory!\n");
+      temp = realloc(*ptr, (size+1) * sizeof(unsigned int));
+      if(!temp){
+         printf("Error!\n");
+         return 1;
+      }else{
+         *ptr = temp;
       }
+      (*ptr)[size] = data;
    }
-   printf("Before setting data with size: %d\n", *size);
-   (*ptr)[*size] = data;
-   printf("After setting data with size: %d\n", *size);
-   (*size)++;
 }
 
-void insertarrayfloat(float **ptr, int *size, float data){
-   if(*size == 0){
-      printf("Allocating memory for pointer with size: %d\n", *size);
-      *ptr = malloc(sizeof(float));
-      if(*ptr == NULL){
-         printf("Failed to allocate memory!\n");
+int insertarrayfloat(float **ptr, int size, float data){
+   float *temp;
+   if(size == 0){
+      temp = malloc(sizeof(float));
+      if(!temp){
+         printf("Error!\n");
+         return 1;
+      }else{
+         *ptr = temp;
       }
+      **ptr = data;
    }else{
-      printf("Reallocating memory for new pointer with size: %d\n", *size);
-      *ptr = realloc(*ptr, (*size + 1) * sizeof(float));
-      if(*ptr == NULL){
-         printf("Failed to allocate memory!\n");
+      temp = realloc(*ptr, (size+1) * sizeof(float));
+      if(!temp){
+         printf("Error!\n");
+         return 1;
+      }else{
+         *ptr = temp;
       }
+      (*ptr)[size] = data;
    }
-   printf("Before setting data with size: %d\n", *size);
-   (*ptr)[*size] = data;
-   printf("After setting data with size: %d\n", *size);
-   (*size)++;
 }

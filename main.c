@@ -21,14 +21,16 @@ float xoffset;
 float yoffset;
 float yaw = -90.0f;
 float pitch = 0.0f;
-float jumpacceleration = 3.0f;
-float gravity = -0.1f;
+float jumpacceleration = 5.0f;
+float gravity = -0.3f;
+float fallinggravity = -4.0f;
 GLuint checkfront = 0;
 GLuint checkback = 0;
 GLuint checkleft = 0;
 GLuint checkright = 0;
 GLuint jumppressed = 0;
 GLuint jump = 0;
+GLuint falling = 0;
 GLuint kill = 0;
 GLuint firstclick = 1;
 GLuint speedincrease = 0;
@@ -42,7 +44,7 @@ GLuint shadowstate = 1;
 GLuint lightingchange = 0;
 GLuint lightingstate = 1;
 GLuint normalmapchange = 0;
-GLuint normalmapstate = 0;
+GLuint normalmapstate = 1;
 GLuint uniColor;
 GLuint xploc;
 GLuint yploc;
@@ -88,35 +90,35 @@ int main(int argc, char *argv[]){
    unsigned int tangentssize = 0;
    unsigned int bitangentssize = 0;
    unsigned int colorssize = 0;
-   float *vertex = malloc(sizeof(float) * 1000000);
-   float *texturecoords = malloc(sizeof(float) * 1000000);
-   float *normals = malloc(sizeof(float) * 1000000);
-   float *tangents = malloc(sizeof(float) * 1000000);
-   float *bitangents = malloc(sizeof(float) * 1000000);
-   float *colors = malloc(sizeof(float) * 1000000);
+   float *vertex;
+   float *texturecoords;
+   float *normals;
+   float *tangents;
+   float *bitangents;
    unsigned int sunverticessize = 0;
    unsigned int suntexturecoordsize = 0;
    unsigned int sunnormalssize = 0;
-   float *sunvertex = malloc(sizeof(float) * 100000);
-   float *suntexturecoords = malloc(sizeof(float) * 100000);
-   float *sunnormals = malloc(sizeof(float) * 100000);
-   if(load_obj("plane.obj", vertex, texturecoords, normals, tangents, bitangents, &verticessize, &texturecoordsize, &normalssize, &tangentssize, &bitangentssize) != 0){
-      printf("Something went wrong!\n");
-      return 1;
-   }else{
-      printf("Model loaded successfully from file!\n");
-   }
-   if(load_obj("sphere.obj", sunvertex, suntexturecoords, sunnormals, NULL, NULL, &sunverticessize, &suntexturecoordsize, &sunnormalssize, NULL, NULL) != 0){
-      printf("Something went wrong!\n");
-      return 1;
-   }else{
-      printf("Model loaded successfully from file!\n");
-   }
+   float *sunvertex;
+   float *suntexturecoords;
+   float *sunnormals;
    int i;
+   if(load_obj("flat-plane1.obj", &vertex, &texturecoords, &normals, &tangents, &bitangents, &verticessize, &texturecoordsize, &normalssize, &tangentssize, &bitangentssize) != 0){
+      printf("Something went wrong!\n");
+      return 1;
+   }else{
+      printf("Model loaded successfully from file!\n");
+   }
+   if(load_obj("sphere.obj", &sunvertex, &suntexturecoords, &sunnormals, NULL, NULL, &sunverticessize, &suntexturecoordsize, &sunnormalssize, NULL, NULL) != 0){
+      printf("Something went wrong!\n");
+      return 1;
+   }else{
+      printf("Model loaded successfully from file!\n");
+   }
+   float *colors;
    for(i = 0; i < verticessize / sizeof(float) / 3; i++){
-      colors[i * 3] = 1.0f;
-      colors[i * 3 + 1] = 1.0f;
-      colors[i * 3 + 2] = 1.0f;
+      insertarrayfloat(&colors, i * 3, 1.0f);
+      insertarrayfloat(&colors, i * 3 + 1, 1.0f);
+      insertarrayfloat(&colors, i * 3 + 2, 1.0f);
       colorssize += sizeof(colors[i * 3]) * 3;
    }
    for(i = 0; i < argc; i++){
@@ -350,7 +352,7 @@ int main(int argc, char *argv[]){
       fprintf(stderr, "Error linking light shader program: '%s'\n", InfoLog3);
       return 1;
    }
-   vec3 camerapos = {0.0f, 0.0f, 7.0f};
+   vec3 camerapos = {0.0f, 0.0f, 0.0f};
    vec3 center = {0.0f, 0.0f, 0.0f};
    vec3 target = {0.0f, 0.0f, 0.0f};
    vec3 front = {0.0f, 0.0f, -1.0f};
@@ -411,7 +413,6 @@ int main(int argc, char *argv[]){
    direction[1] = sin(glm_rad(pitch));
    direction[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
    directionfront[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
-   //directionfront[1] = sin(glm_rad(pitch));
    directionfront[1] = 0.0f;
    directionfront[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
    glm_normalize(direction);
@@ -426,8 +427,12 @@ int main(int argc, char *argv[]){
    mat4 sunmodel = GLM_MAT4_IDENTITY_INIT;
    mat4 identity = GLM_MAT4_IDENTITY_INIT;
    glm_lookat(camerapos, center, yup, view);
-   glm_perspective(glm_rad(45.0f), (float)width/(float)height, 0.001f, 100.0f, proj);
-   glm_translate(sunmodel, invlightdir);
+   glm_perspective(glm_rad(90.0f), (float)width/(float)height, 0.001f, 100.0f, proj);
+   //glm_ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.001f, 100.0f, proj);
+   glm_scale(model, (vec3){10.0f, 1.0f, 10.0f});
+   glm_vec3_scale(invlightdir, 2.0f, scaledlightdir);
+   glm_translate(sunmodel, scaledlightdir);
+   glm_translate(model, (vec3){0.0f, -1.0f, 0.0f});
    glEnable(GL_MULTISAMPLE);
    glEnable(GL_DEPTH_TEST);
    glEnable(GL_CULL_FACE);
@@ -615,7 +620,7 @@ int main(int argc, char *argv[]){
 
    int texwidth, texheight, texnum;
    stbi_set_flip_vertically_on_load(true);
-   unsigned char* bytes = stbi_load("brickwall2.jpg", &texwidth, &texheight, &texnum, 0);
+   unsigned char* bytes = stbi_load("wood-floor.jpg", &texwidth, &texheight, &texnum, 0);
    if(bytes == NULL){
       printf("Failed to load the texture!\n");
       //return 1;
@@ -637,7 +642,7 @@ int main(int argc, char *argv[]){
    stbi_image_free(bytes);
    printf("Texture set successfully\n");
    stbi_set_flip_vertically_on_load(true);
-   unsigned char* normalbytes = stbi_load("brickwall2_normal.jpg", &texwidth, &texheight, &texnum, 0);
+   unsigned char* normalbytes = stbi_load("wood-floor_normal.jpg", &texwidth, &texheight, &texnum, 0);
    if(normalbytes == NULL){
       printf("Failed to load the normal texture!\n");
    }
@@ -668,7 +673,8 @@ int main(int argc, char *argv[]){
       deltatime = currentframe - lastframe;
       lastframe = currentframe;
       //printf("FPS: %f\n", 1.0f / deltatime);
-      glm_vec3_scale(speed, deltatime, camspeed);
+      //printf("direction: %f, %f, %f; directionfront: %f, %f, %f\n", direction[0], direction[1], direction[2], directionfront[0], directionfront[1], directionfront[2]);
+      //glm_vec3_scale(speed, deltatime, camspeed);
       //glm_rotate(model, glm_rad(degreesx), (vec3){0, 1, 0});
       //glm_rotate(model, glm_rad(degreesy), (vec3){1, 0, 0});
       //glm_rotate(floormodel, glm_rad(-degreesy * deltatime * 20), (vec3){0, 1, 0});
@@ -688,39 +694,41 @@ int main(int argc, char *argv[]){
 	 speed[1] = 2.5f;
 	 speed[2] = 2.5f;
       }
+      glm_vec3_scale(speed, deltatime, camspeed);
       if(zoom == 1 && zoomedin == 0){
-         glm_perspective(glm_rad(15.0f), (float)width/(float)height, 0.001f, 100.0f, proj);
+         glm_perspective(glm_rad(30.0f), (float)width/(float)height, 0.001f, 100.0f, proj);
 	 zoomedin = 1;
       }else if(zoom == 0 && zoomedin == 1){
-         glm_perspective(glm_rad(45.0f), (float)width/(float)height, 0.001f, 100.0f, proj);
+         glm_perspective(glm_rad(90.0f), (float)width/(float)height, 0.001f, 100.0f, proj);
 	 zoomedin = 0;
       }
       if(checkfront == 1){
-         glm_vec3_mul(camspeed, front, output);
+         glm_vec3_mul(camspeed, directionfront, output);
          glm_vec3_add(camerapos, output, camerapos);
-	 glm_vec3_add(camerapos, front, location);
+	 //glm_vec3_add(camerapos, directionfront, location);
       }
       if(checkback == 1){
-         glm_vec3_mul(camspeed, front, output);
+         glm_vec3_mul(camspeed, directionfront, output);
          glm_vec3_sub(camerapos, output, camerapos);
-	 glm_vec3_add(camerapos, front, location);
+	 //glm_vec3_add(camerapos, directionfront, location);
       }
       if(checkleft == 1){
-         glm_vec3_crossn(front, yup, output2);
+         glm_vec3_crossn(directionfront, yup, output2);
 	 glm_vec3_mul(output2, camspeed, output3);
 	 glm_vec3_sub(camerapos, output3, camerapos);
-	 glm_vec3_add(camerapos, front, location);
+	 //glm_vec3_add(camerapos, directionfront, location);
       }
       if(checkright == 1){
-         glm_vec3_crossn(front, yup, output2);
+         glm_vec3_crossn(directionfront, yup, output2);
 	 glm_vec3_mul(output2, camspeed, output3);
 	 glm_vec3_add(camerapos, output3, camerapos);
-	 glm_vec3_add(camerapos, front, location);
+	 //glm_vec3_add(camerapos, directionfront, location);
       }
       //jumppressed = 1;
       if(jumppressed == 1 && jump == 0){
          jump = 1;
       }
+      /*
       if(jump == 1){
          glm_translate_y(model, jumpacceleration * deltatime);
 	 jumpacceleration += gravity;
@@ -730,6 +738,31 @@ int main(int argc, char *argv[]){
 	    jump = 0;
 	 }
       }
+      */
+      if(jump == 1 && falling == 0){
+         camerapos[1] += jumpacceleration * deltatime;
+         jumpacceleration += gravity;
+	 if(camerapos[1] <= 0.0f){
+            camerapos[1] = 0.0f;
+	    jumpacceleration = 5.0f;
+	    jump = 0;
+	 }
+      }
+      if((camerapos[0] - 0.5f > 10.0f || camerapos[0] + 0.5f < -10.0f || camerapos[2] - 0.5f > 10.0f || camerapos[2] + 0.5f < -10.0f) && jump == 0){
+         //falling = 1;
+      }
+      if(falling == 1 && camerapos[1] < -5.0f){
+         camerapos[0] = 0.0f;
+         camerapos[1] = 0.0f;
+	 camerapos[2] = 0.0f;
+	 yaw = -90.0f;
+	 pitch = 0.0f;
+	 falling = 0;
+	 jump = 0;
+      }
+      if(falling == 1){
+         camerapos[1] += fallinggravity * deltatime;
+      }
       if(kill == 1){
          break;
       }
@@ -738,7 +771,6 @@ int main(int argc, char *argv[]){
       direction[1] = sin(glm_rad(pitch));
       direction[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
       directionfront[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
-      //directionfront[1] = sin(glm_rad(pitch));
       directionfront[1] = 0.0f;
       directionfront[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
       glm_normalize(direction);
@@ -813,6 +845,10 @@ int main(int argc, char *argv[]){
          glUniform1f(normalmaploc, 1.0f);
 	 normalmapchange = 0;
 	 normalmapstate = 1;
+      }else if(normalmapchange == 0 && normalmapstate == 1){
+         glUniform1f(normalmaploc, 1.0f);
+      }else if(normalmapchange == 0 && normalmapstate == 0){
+         glUniform1f(normalmaploc, 0.0f);
       }
       //printf("%d, %d\n", texturechange, texturestate);
       glBindVertexArray(VAO[0]);
