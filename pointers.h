@@ -1,6 +1,6 @@
 #include<stdlib.h>
 
-int insertarrayint(unsigned int **ptr, int size, int data){
+int insertarrayuint(unsigned int **ptr, int size, int data){
    int *temp;
    if(size == 0){
       temp = malloc(sizeof(unsigned int));

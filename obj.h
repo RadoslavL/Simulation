@@ -97,23 +97,23 @@ int load_obj(const char* filename, float** vertices, float** texcoords, float** 
          //vertexindices[g] = vertexindex[0];
          //vertexindices[g + 1] = vertexindex[1];
          //vertexindices[g + 2] = vertexindex[2];
-	 insertarrayint(&vertexindices, g, vertexindex[0]);
-	 insertarrayint(&vertexindices, g + 1, vertexindex[1]);
-	 insertarrayint(&vertexindices, g + 2, vertexindex[2]);
+	 insertarrayuint(&vertexindices, g, vertexindex[0]);
+	 insertarrayuint(&vertexindices, g + 1, vertexindex[1]);
+	 insertarrayuint(&vertexindices, g + 2, vertexindex[2]);
 	 vertexsize += 3;
          //texindices[g] = texindex[0];
          //texindices[g + 1] = texindex[1];
          //texindices[g + 2] = texindex[2];
-	 insertarrayint(&texindices, g, texindex[0]);
-         insertarrayint(&texindices, g + 1, texindex[1]);
-         insertarrayint(&texindices, g + 2, texindex[2]);
+	 insertarrayuint(&texindices, g, texindex[0]);
+         insertarrayuint(&texindices, g + 1, texindex[1]);
+         insertarrayuint(&texindices, g + 2, texindex[2]);
 	 texcoordsize += 3;
          //normalindices[g] = normalindex[0];
          //normalindices[g + 1] = normalindex[1];
          //normalindices[g + 2] = normalindex[2];
-	 insertarrayint(&normalindices, g, normalindex[0]);
-         insertarrayint(&normalindices, g + 1, normalindex[1]);
-         insertarrayint(&normalindices, g + 2, normalindex[2]);
+	 insertarrayuint(&normalindices, g, normalindex[0]);
+         insertarrayuint(&normalindices, g + 1, normalindex[1]);
+         insertarrayuint(&normalindices, g + 2, normalindex[2]);
 	 normalsize += 3;
          g += 3;
       }
@@ -139,7 +139,7 @@ int load_obj(const char* filename, float** vertices, float** texcoords, float** 
       insertarrayfloat(&verticesind, i * 3, verticesout[(vertexindices[i] - 1) * 3]);
       insertarrayfloat(&verticesind, i * 3 + 1, verticesout[(vertexindices[i] - 1) * 3 + 1]);
       insertarrayfloat(&verticesind, i * 3 + 2, verticesout[(vertexindices[i] - 1) * 3 + 2]);
-      verticessize += sizeof(verticesind[i]) * 3;
+      verticessize += sizeof(float) * 3;
    }
    for(i = 0; i < texcoordsize; i++){
       //texturecoordsind[i * 2] = texcoordsout[(texindices[i] - 1) * 2];
@@ -147,8 +147,7 @@ int load_obj(const char* filename, float** vertices, float** texcoords, float** 
       //texturecoordsind[i * 2 + 2] = texcoordsout[(texindices[i] - 1) * 2 + 2];
       insertarrayfloat(&texturecoordsind, i * 2, texcoordsout[(texindices[i] - 1) * 2]);
       insertarrayfloat(&texturecoordsind, i * 2 + 1, texcoordsout[(texindices[i] - 1) * 2 + 1]);
-      insertarrayfloat(&texturecoordsind, i * 2 + 2, texcoordsout[(texindices[i] - 1) * 2 + 2]);
-      texturecoordsize += sizeof(texturecoordsind[i]) * 2;
+      texturecoordsize += sizeof(float) * 2;
    }
    for(i = 0; i < normalsize; i++){
       //normalsind[i * 3] = normalsout[(normalindices[i] - 1) * 3];
@@ -157,7 +156,7 @@ int load_obj(const char* filename, float** vertices, float** texcoords, float** 
       insertarrayfloat(&normalsind, i * 3, normalsout[(normalindices[i] - 1) * 3]);
       insertarrayfloat(&normalsind, i * 3 + 1, normalsout[(normalindices[i] - 1) * 3 + 1]);
       insertarrayfloat(&normalsind, i * 3 + 2, normalsout[(normalindices[i] - 1) * 3 + 2]);
-      normalssize += sizeof(normalsind[i]) * 3;
+      normalssize += sizeof(float) * 3;
    }
    for(i = 0; i < verticessize / sizeof(float) / 9; i++){
       v0[0]  = verticesind[i * 9];
